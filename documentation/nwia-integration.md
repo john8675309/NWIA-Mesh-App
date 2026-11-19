@@ -184,3 +184,24 @@ packet-to-push relay remain separate acceptance checks.
 The keyless Wio overlay and its pinned build instructions are included under
 [`firmware/nwia-keyless`](../firmware/nwia-keyless/README.md). Imported component
 notices are recorded in [NWIA third-party components](nwia-third-party.md).
+
+## Flutter hardware acceptance recorded 2026-11-19
+
+On the commissioned Android phone, the user confirmed the corrected Flutter
+preview opened normally and displayed the foreground Firebase data-push alert.
+The background data push also reached the Android handler. The original encrypted
+identity file and public identity remained unchanged across the pilot update.
+Both Wio NWA1/secured BLE and TLS MQTT connected with the existing runtime settings.
+
+With phone MQTT disconnected, the user sent the named test from a separate
+MeshCore companion and received it in the Flutter app through the Wio. With Wio
+BLE disconnected and MQTT connected, the user received the internet-path test
+and sent an Android reply that arrived on the separate companion. These are
+physical reception and MQTT round-trip results, not a claim that every upstream
+feature or phone model is supported. Native delivery-policy races and packet
+compatibility are covered by the recorded deterministic checks.
+
+Generic FCM test alerts do not complete the mesh-message push feature. The
+packet-to-push relay, authenticated registration and encrypted offline inbox are
+still required before claiming background mesh-message delivery while the app
+is not maintaining MQTT.
