@@ -1,3 +1,11 @@
+> **NWIA Mesh fork — work in progress**
+>
+> This fork is the proposed Flutter foundation for NWIA Mesh. The current code
+> still uses the upstream stock-companion/key ownership model. NWIA phone-owned
+> keys, keyless Wio transport and MQTT fallback are not integrated here yet.
+> See the [NWIA integration assessment](documentation/nwia-integration.md).
+> The separate tested Android pilot remains installed and unchanged.
+
 # MeshCore Open
 
 Open-source Flutter client for MeshCore LoRa mesh networking devices.

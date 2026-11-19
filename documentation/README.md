@@ -1,3 +1,6 @@
+> NWIA fork status: [keyless companion / MQTT integration assessment](nwia-integration.md).
+> This describes planned integration; it is not an enabled feature in this fork.
+
 # MeshCore Open - Feature Documentation
 
 MeshCore Open is an open-source Flutter client for MeshCore LoRa mesh networking devices. These guides describe current user-facing features and their requirements. Reviewed against app `9.5.0+18` on October 11, 2026. Hardware behavior still depends on platform, radio, and firmware.
