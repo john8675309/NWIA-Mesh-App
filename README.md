@@ -3,7 +3,7 @@
 > Android now includes a phone-owned key endpoint, keyless Wio BLE transport and
 > companion-first encrypted MQTT fallback. This Flutter integration is undergoing
 > build and hardware acceptance; it is not a production release. The separate
-> tested Android pilot remains the hardware checkpoint. The mesh-message push relay is pending.
+> tested Android pilot remains the hardware checkpoint. The signed offline inbox and FCM relay are implemented; live acceptance is in progress.
 > See the [NWIA integration guide](documentation/nwia-integration.md) for setup,
 > key ownership, validation and current limitations. The upstream downloads below
 > are MeshCore Open builds and do not contain these NWIA changes.

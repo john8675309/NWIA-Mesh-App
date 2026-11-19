@@ -44,7 +44,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "cs": [
@@ -92,7 +100,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "de": [
@@ -140,7 +156,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "es": [
@@ -188,7 +212,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "fr": [
@@ -236,7 +268,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "hu": [
@@ -284,7 +324,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "it": [
@@ -332,7 +380,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "ja": [
@@ -380,7 +436,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "ko": [
@@ -428,7 +492,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "nl": [
@@ -476,7 +548,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "pl": [
@@ -524,7 +604,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "pt": [
@@ -572,7 +660,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "pt_PT": [
@@ -620,7 +716,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "ru": [
@@ -668,7 +772,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "sk": [
@@ -716,7 +828,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "sl": [
@@ -764,7 +884,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "sv": [
@@ -812,7 +940,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "uk": [
@@ -860,7 +996,15 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ],
 
   "zh": [
@@ -908,6 +1052,14 @@
     "nwia_radioReady",
     "nwia_radioUnavailable",
     "nwia_mqttReady",
-    "nwia_mqttUnavailable"
+    "nwia_mqttUnavailable",
+    "nwia_relayUrl",
+    "nwia_backgroundInbox",
+    "nwia_inboxPrivacy",
+    "nwia_inboxReady",
+    "nwia_inboxNotReady",
+    "nwia_pendingPackets",
+    "nwia_expiredPackets",
+    "nwia_syncInbox"
   ]
 }

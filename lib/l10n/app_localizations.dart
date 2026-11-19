@@ -12783,6 +12783,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'MQTT disconnected'**
   String get nwia_mqttUnavailable;
+
+  /// No description provided for @nwia_relayUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox HTTPS address'**
+  String get nwia_relayUrl;
+
+  /// No description provided for @nwia_backgroundInbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Background messages and offline inbox'**
+  String get nwia_backgroundInbox;
+
+  /// No description provided for @nwia_inboxPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'The relay stores encrypted packets. Only this phone decrypts them. Firebase receives a generic wakeup notice.'**
+  String get nwia_inboxPrivacy;
+
+  /// No description provided for @nwia_inboxReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox registered'**
+  String get nwia_inboxReady;
+
+  /// No description provided for @nwia_inboxNotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox not registered or sync needs attention'**
+  String get nwia_inboxNotReady;
+
+  /// No description provided for @nwia_pendingPackets.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted packets awaiting chat import: {count}'**
+  String nwia_pendingPackets(int count);
+
+  /// No description provided for @nwia_expiredPackets.
+  ///
+  /// In en, this message translates to:
+  /// **'Older packets removed by retention/storage limits: {count}'**
+  String nwia_expiredPackets(int count);
+
+  /// No description provided for @nwia_syncInbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Save and sync inbox'**
+  String get nwia_syncInbox;
 }
 
 class _AppLocalizationsDelegate

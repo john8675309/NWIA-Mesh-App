@@ -17,3 +17,8 @@ The companion build uses NWIA MeshCore commit
 upstream platform/framework, RadioLib, Crypto, CustomLFS, MicroNMEA and Adafruit
 licenses. No Android SDK, private signing key, service-account key, MQTT password
 or deployment Firebase configuration is included in source.
+
+Background sync uses AndroidX WorkManager (Apache-2.0). The server dependencies
+are installed separately using `server/requirements.txt`; the tested deployment
+versions are recorded in `server/requirements.lock`. No server SDK or sender
+credential is bundled into the mobile APK.

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +22,12 @@ class _NwiaScreenState extends State<NwiaScreen> {
   final _user = TextEditingController();
   final _password = TextEditingController();
   final _origin = TextEditingController();
+  final _relay = TextEditingController();
+  bool _pushEnabled = false;
+  bool _inboxReady = false;
+  int _pending = 0;
+  int _dropped = 0;
+  Timer? _inboxStatusTimer;
   bool _busy = true;
   String? _error;
   String _publicId = '';
@@ -29,6 +36,18 @@ class _NwiaScreenState extends State<NwiaScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _open());
+    _inboxStatusTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+      if (!mounted || _busy) return;
+      try {
+        final profile = await context.read<MeshCoreConnector>().nwia.profile();
+        if (!mounted) return;
+        setState(() {
+          _inboxReady = profile['inboxReady'] == true;
+          _pending = (profile['inboxPending'] as num?)?.toInt() ?? 0;
+          _dropped = (profile['inboxDropped'] as num?)?.toInt() ?? 0;
+        });
+      } catch (_) {}
+    });
   }
 
   Future<void> _open() async {
@@ -45,6 +64,11 @@ class _NwiaScreenState extends State<NwiaScreen> {
       _user.text = profile['user'] as String? ?? '';
       _origin.text = profile['origin'] as String? ?? '';
       _publicId = profile['publicKey'] as String;
+      _relay.text = profile['relayUrl'] as String? ?? '';
+      _pushEnabled = profile['pushEnabled'] == true;
+      _inboxReady = profile['inboxReady'] == true;
+      _pending = (profile['inboxPending'] as num?)?.toInt() ?? 0;
+      _dropped = (profile['inboxDropped'] as num?)?.toInt() ?? 0;
     });
   }
 
@@ -74,6 +98,8 @@ class _NwiaScreenState extends State<NwiaScreen> {
       'user': _user.text,
       'password': _password.text,
       'origin': _origin.text.trim().toLowerCase(),
+      'relayUrl': _relay.text.trim(),
+      'pushEnabled': _pushEnabled,
     });
     _password.clear();
   }
@@ -220,6 +246,29 @@ class _NwiaScreenState extends State<NwiaScreen> {
               _field(_user, l10n.nwia_user),
               _field(_password, l10n.nwia_password, secret: true),
               _field(_origin, l10n.nwia_origin),
+              _field(_relay, l10n.nwia_relayUrl),
+              SwitchListTile(
+                title: Text(l10n.nwia_backgroundInbox),
+                subtitle: Text(l10n.nwia_inboxPrivacy),
+                value: _pushEnabled,
+                onChanged: _busy
+                    ? null
+                    : (value) => setState(() => _pushEnabled = value),
+              ),
+              Text(
+                _inboxReady ? l10n.nwia_inboxReady : l10n.nwia_inboxNotReady,
+              ),
+              Text(l10n.nwia_pendingPackets(_pending)),
+              if (_dropped > 0) Text(l10n.nwia_expiredPackets(_dropped)),
+              OutlinedButton(
+                onPressed: _busy
+                    ? null
+                    : () => _run(() async {
+                        await _save();
+                        await connector.nwia.inboxSync();
+                      }),
+                child: Text(l10n.nwia_syncInbox),
+              ),
               const SizedBox(height: 16),
               OutlinedButton(
                 onPressed: _busy ? null : () => _run(_save),
@@ -242,7 +291,17 @@ class _NwiaScreenState extends State<NwiaScreen> {
 
   @override
   void dispose() {
-    for (final c in [_name, _host, _port, _group, _user, _password, _origin]) {
+    _inboxStatusTimer?.cancel();
+    for (final c in [
+      _name,
+      _host,
+      _port,
+      _group,
+      _user,
+      _password,
+      _origin,
+      _relay,
+    ]) {
       c.dispose();
     }
     super.dispose();

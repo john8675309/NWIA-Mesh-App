@@ -28,6 +28,9 @@ class NwiaBridge(private val context: Context, engine: FlutterEngine) {
                         "frame" -> { local.handle(call.arguments as ByteArray); result.success(null) }
                         "sendDm" -> { val a = call.arguments as Map<*, *>; result.success(local.sendDm(a["peer"] as String, a["text"] as String, (a["timestamp"] as Number).toLong())) }
                         "profile" -> result.success(local.profile())
+                        "inboxFrames" -> result.success(local.inboxFrames())
+                        "inboxCommit" -> { local.inboxCommit(call.arguments as String); result.success(null) }
+                        "inboxSync" -> { local.inboxSync(); result.success(null) }
                         "configure" -> { @Suppress("UNCHECKED_CAST") val a = call.arguments as Map<String, Any>; local.configure(a); result.success(null) }
                         "pushToken" -> {
                             com.google.firebase.messaging.FirebaseMessaging.getInstance().token

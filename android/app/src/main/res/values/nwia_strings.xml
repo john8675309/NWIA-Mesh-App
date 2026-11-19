@@ -2,5 +2,5 @@
     <string name="nwia_push_channel">NWIA Mesh activity</string>
     <string name="nwia_push_title">NWIA Mesh</string>
     <string name="nwia_push_test">Firebase push test received</string>
-    <string name="nwia_push_activity">New mesh activity. Open NWIA Mesh to sync.</string>
+    <string name="nwia_push_activity">New encrypted message. Open NWIA Mesh to read.</string>
 </resources>

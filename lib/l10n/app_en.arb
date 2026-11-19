@@ -4366,5 +4366,27 @@
   "nwia_radioReady": "Companion ready",
   "nwia_radioUnavailable": "Companion unavailable",
   "nwia_mqttReady": "MQTT connected",
-  "nwia_mqttUnavailable": "MQTT disconnected"
+  "nwia_mqttUnavailable": "MQTT disconnected",
+  "nwia_relayUrl": "Inbox HTTPS address",
+  "nwia_backgroundInbox": "Background messages and offline inbox",
+  "nwia_inboxPrivacy": "The relay stores encrypted packets. Only this phone decrypts them. Firebase receives a generic wakeup notice.",
+  "nwia_inboxReady": "Inbox registered",
+  "nwia_inboxNotReady": "Inbox not registered or sync needs attention",
+  "nwia_pendingPackets": "Encrypted packets awaiting chat import: {count}",
+  "@nwia_pendingPackets": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nwia_expiredPackets": "Older packets removed by retention/storage limits: {count}",
+  "@nwia_expiredPackets": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nwia_syncInbox": "Save and sync inbox"
 }

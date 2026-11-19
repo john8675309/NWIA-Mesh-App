@@ -1,207 +1,118 @@
-# NWIA Mesh fork: keyless companion and MQTT
+# NWIA Mesh: phone-owned keys, keyless radio, MQTT and inbox
 
-Status: Android integration in progress, 2026-11-19. The fork now contains a
-phone-local native endpoint, Keystore-backed identity/channel storage, NWA1
-keyless modem transport, TLS MQTT transport and companion-first delivery policy.
-The Flutter UI calls this endpoint; legacy companion frames terminate on the
-phone and are never forwarded into the Wio. The separate Android pilot remains
-the hardware-tested checkpoint. This Flutter build has not passed physical
-acceptance yet.
+The Android fork owns its MeshCore identity and channel keys in a Keystore-wrapped
+phone vault. The Wio Tracker L1/L1 Pro is an opaque BLE/LoRa modem, including while
+powered on: no message keys, plaintext chat or broker credentials are provisioned
+to it. The full-packet Heltec gateways continue native local repeating independently
+of internet availability. iOS and production signing are later work.
 
-Base inspected: upstream dev at34ea0cb7ca5142bdfc0a85e31fd91543f6392e78.
-Original MIT license and copyright remain intact. This is an independent fork;
-no upstream endorsement or merged upstream implementation is implied.
+## Message routing
 
-## What this base supplies
+Prefer a ready companion. A direct message falls back once to TLS MQTT after a
+failed transmission, disconnection or native recipient-ACK timeout. The same
+ciphertext and original native timestamp are reused. Channel chat uses MQTT only
+when the companion is unavailable or RF transmission fails; successful channel
+RF transmission has no recipient ACK to wait for. MQTT write completion is not
+recipient delivery. Native short receipts are not signed read receipts.
 
-Contacts, channels, chat history, SQLite-backed native history storage, unread
-state, routing views, maps, repeater management, background BLE infrastructure,
-local notifications, localization and Android/iOS platform runners. These are
-useful app foundations; they are not proof of phone-owned mesh keys or internet
-messaging without a radio.
+The Android endpoint terminates the existing UI's stock command frames on the
+phone. Only the NWA1 modem handshake and opaque native packets reach BLE. Private
+key import/export, plaintext legacy DM commands, login and unsupported radio
+settings fail locally. Native crypto/delivery policy has one owner; upstream
+legacy retries must not re-encrypt or resend NWIA messages in parallel.
 
-## Upstream boundaries identified before integration
+## Background messages and offline inbox
 
-| Area | Upstream source before integration | Required NWIA behavior |
-| --- | --- | --- |
-| DM/channel sending | Connector builds stock companion commands with text and device-owned crypto | Phone constructs encrypted native packets; Wio transports opaque packets |
-| Identity | exportPrivateKey/importPrivateKey read/write the companion identity | Android-owned identity protected by Keystore; no private-key command to Wio |
-| Channel keys | setChannel sends PSK to device; ChannelStore serializes PSK to preferences | Phone-only protected key storage; no PSK bytes sent over BLE |
-| No radio | Offline screens are read-only and sending is disabled | MQTT-ready app can send/receive without a companion |
-| Retry | Existing radio message retry/path logic | One owner of companion-first, ACK deadline and MQTT fallback; same ciphertext |
-| Notifications | Local notification and background BLE services | Separate authenticated encrypted inbox/push relay for internet wakeups |
-| Storage identity | Mostly scoped by connected radio public key | Scope by phone's mesh identity across Wio/MQTT transitions |
+The separate [relay](../server/README.md) reads the existing MQTT packet stream
+with a read-only account. It retains encrypted chat candidates for 72 hours, with
+per-phone bounds and visible expiry/overflow counts. It does not possess mesh
+private/channel keys. Firebase receives only a generic inbox wakeup notice.
+Android WorkManager authenticates HTTPS requests with the phone identity,
+atomically caches encrypted packets, then acknowledges the server cursor.
 
-Source references:
+Open NWIA controls, set the **Inbox HTTPS address**, enable **Background messages
+and offline inbox**, then choose **Save and sync inbox**. Initial registration
+also checks the phone's separate MQTT credentials and its operator-approved
+username/group/origin binding. The first full public identity is locked to that
+binding. The status must become **Inbox registered**. A fresh installation needs
+its own broker account; do not reuse a gateway account or another phone's origin.
 
-- [Connector](../lib/connector/meshcore_connector.dart): sendFrame, private-key
-  import/export, text builders and setChannel are the key boundaries.
-- [Protocol builders](../lib/connector/meshcore_protocol.dart): stock commands are
-  not the NWIA modem byte-stream protocol.
-- [Channel store](../lib/storage/channel_store.dart): PSK serialization must not
-  become the NWIA protected-key store unchanged.
-- [Key helpers](../lib/utils/keys.dart): already understand MeshCore's expanded
-  private-key representation, but stock ownership/import flows still target radio.
-- [Offline mode](offline-mode.md): current composer and device-state gates need
-  a logical app endpoint, not just a connected-radio boolean.
-- [Retry service](../lib/services/message_retry_service.dart): avoid simultaneous
-  legacy retries and NWIA immutable-packet MQTT fallback.
+On reopening, the phone decrypts retained packets using their authenticated
+original capture time and imports them into the same chat history. It removes a
+local cached packet only after history persistence succeeds. Native paths are
+excluded from dedup IDs. Recovery never republishes old chat packets onto LoRa;
+a freshly decrypted direct message may return its normal short receipt through
+the phone's MQTT account. No channel-recipient receipt is invented.
 
-## Integration boundary
+Native destinations/channel hashes are one byte, so candidate fanout and unknown
+keys are expected. The phone checks the MAC/format before notifying. Unknown-key
+candidates have a separate bounded allowance; a full readable cache stops server
+ACKs until history is imported. Full sender public keys must be known in the
+phone's contact book. See the relay guide for precise limits and transfer rules.
 
-Create an explicit NWIA endpoint that owns app identity, local contacts/channels,
-message encryption/decryption and delivery state. Reuse the existing UI/models
-through this endpoint. A keyless Wio connection is one radio transport, and MQTT
-is another transport of the same encrypted native packet. A radio connection is
-not the user identity and must not select a different chat history.
+Push is best-effort. Opening the app or periodic background sync recovers missed
+wakeups. Android **Force stop** blocks background delivery until manually opening
+the app again. Ordinary backgrounding/process termination is supported. Inbox
+collection begins at registration, not before opting in. Disabling collection
+requests deletion of the server queue when reachable; existing on-phone chat and
+cached data are retained. The server cannot recover a lost phone private key.
 
-Use the already-tested Android cryptography/Keystore implementation through a
-Flutter platform bridge first. Its native MeshCore compatibility vectors and
-physical radio checks are the reference. Porting crypto to Dart later requires
-the same byte-for-byte vectors and real-peer receipt tests; matching algorithm
-names alone is insufficient for expanded Ed25519 keys/ECDH interoperability.
+## Setup and build
 
-At the phone-to-Wio write boundary, allow only the NWA1 capability handshake and
-opaque native packet transport. **Never forward a legacy private-key, channel
-PSK, plaintext-text or credential command into the Wio transport**, even if the
-firmware would reject it: the bytes would already have entered device RAM. An
-unsupported operation must fail locally. Stock key-provisioning paths must be
-inaccessible in NWIA mode, including diagnostics/export and reconnect sync.
+Flutter 3.47.9 is pinned by the base project. For an FCM-enabled local build,
+place the matching Android client configuration at
+`android/app/google-services.json`; it is ignored by Git. Service-account sender
+keys belong only on the server. No real MQTT/Wi-Fi password, private channel key,
+private mesh identity or production signing key is in the source or firmware.
+The standard publicly known MeshCore Public channel default remains available.
 
-Wio firmware is already built, flashed and bench-tested separately. It speaks a
-length-prefixed keyless protocol over encrypted Nordic UART, with a distinct
-capability handshake. Upstream's172-byte stock companion frames cannot simply
-be pointed at it. The radio continues to carry native MeshCore packets, so stock
-MeshCore recipients can interoperate.
+```sh
+flutter pub get
+flutter gen-l10n
+flutter analyze --fatal-infos --fatal-warnings
+flutter test
+flutter build apk --debug --target-platform android-arm64
+python3 tools/verify_nwia_debug_apk.py build/app/outputs/flutter-apk/app-debug.apk
+cd android && ./gradlew :nwia-core:verifyCore
+```
 
-## Delivery contract to carry over
+Verify the APK signer matches the installed pilot and update **without uninstalling
+or clearing app data**. The app ID, vault alias/format and existing identity are
+preserved. The Wio overlay and pinned build instructions are under
+[`firmware/nwia-keyless`](../firmware/nwia-keyless/README.md). Original MIT notices
+remain; see [native components](nwia-third-party.md).
 
-- App-owned identity and channel keys; Wio holds no message keys, even in RAM.
-  BLE bonding keys are separate.
-- Prefer a ready companion. For DMs, wait for a matched native recipient receipt.
-  Unavailable companion, failed TX, disconnect or ACK timeout falls back once to
-  MQTT using the same ciphertext, message identity and original native timestamp.
-- For channel chat, successful radio TX ends the attempt. Use MQTT only on
-  unavailable/failed radio; there is no channel-recipient ACK to wait for.
-- MQTT write completion is not recipient delivery. Native short ACKs are not
-  signed read receipts. Handle ordinary, encrypted path-return and multipart ACKs.
-- Deduplicate UI by native type plus ciphertext payload, ignoring mutable RF path.
-  Preserve native routing/scope/TTL and bounded airtime/queues. No exactly-once
-  RF claim. Do not let old retry services re-encrypt/resend in parallel.
-- Protect keys with secure storage. Review existing preferences, backups, debug
-  frame logs and crash reporting before carrying real keys into this fork.
+Example UI (fixture values, not deployment credentials):
 
-## Preserve the working identity
+![NWIA inbox controls](../test/goldens/nwia_inbox.png)
 
-The Android pilot currently owns an installed, encrypted identity and a dedicated
-MQTT account. Do not uninstall/reset that app, generate a replacement identity,
-flash another radio firmware or copy a private key onto Wio during migration.
-A future in-place Android update can reuse the existing application ID, signing
-certificate, Keystore alias and vault format, but only after explicit migration
-validation. The current fork keeps its upstream package/build behavior unchanged;
-it has not replaced the tested pilot on the user's phone.
+## Recorded validation
 
-## Existing pilot acceptance to reproduce here
+The previous Android integration passed 1,548 Flutter tests and 127,719 native
+policy/crypto/framing/bounds checks. The physical phone retained its original
+encrypted identity and public identity across in-place updates. The user confirmed
+radio-only reception through Wio while phone MQTT was disconnected, and an
+MQTT-only inbound message plus Android reply received by a separate companion
+while Wio BLE was disconnected. Normal companion-first operation was restored.
 
-Physical Android17 phone, Wio Tracker L1/L1 Pro, existing full-packet gateway and
-stock MeshCore test companion passed:
+Generic foreground Firebase alerts were visually confirmed by the user; a
+background data push reached the Android handler. Those generic tests alone did
+not prove mesh-message wakeup/inbox delivery. The new relay adds signed HTTP and
+storage tests and an isolated on-phone encrypted-cache test. Live app-closed,
+retained-message, duplicate and outage results must be recorded separately before
+claiming acceptance of the new background path.
 
-- Keystore-wrapped identity/settings, tamper/AAD rejection and native keygen,
-  ECDH/signature interoperability fixtures.
-- Channel send over Wio/RF, receive via Wio with phone MQTT disabled, and send/
-  receive over MQTT with no companion connection.
-- Signed phone advert, radio-first encrypted DM, matched encrypted native ACK
-  and decrypted peer reply.
-- MQTT-only encrypted DM and decrypted peer reply. That send did not process a
-  matching native ACK; UI kept it unconfirmed. Multipart parsing is unit-tested,
-  not asserted as the cause of the missing receipt.
--127,719 deterministic bounds/crypto/framing/transport checks. The imported core now also passes these checks in this fork; Flutter hardware
-  acceptance is still pending.
+The inbox preview passes 1,549 Flutter tests, strict analysis, Dart formatting,
+15 relay/API tests, and Android app/test-APK compilation. Runtime assets and APK
+archive integrity are checked before installation. The live HTTPS relay reports
+its MQTT subscription ready. At this checkpoint the phone is disconnected from
+USB: the isolated Keystore test, signed phone registration, app-closed mesh push
+and offline history import remain unverified. Build success is not their acceptance.
 
-Before replacing the pilot, reproduce those tests through this Flutter UI,
-including key retention across app updates, no key/PSK BLE writes, no-radio MQTT
-composer availability, late-ACK races, dedup and independent RF/internet outages.
-Run the repository's pinned-SDK format/analyze/test checks for code changes and
-record Android hardware results separately. iOS is a later target.
-
-## Push bolt-on
-
-Use a separate, narrowly authorized service alongside the broker for app identity
-registration, encrypted inbox retention, cursored HTTPS sync and FCM token/wakeup
-delivery. It must not receive mesh private keys. Push payloads should use opaque
-event IDs/generic alerts, with decryption on the phone.
-
-Native RF DM destinations are short hashes, not full public keys. A keyless relay
-cannot always identify one unique recipient; handle collisions with bounded
-candidate fanout or a separate authenticated app routing envelope. Do not turn
-the existing60-second non-retained RF transport into an unlimited offline queue.
-The local Android deployment is registered with Firebase. The FCM SDK, token
-bridge and generic wakeup-notification handler are integrated in Android. Firebase client configuration is
-ignored by Git. No push/inbox relay or production signing key is deployed; token
-availability alone is not working background message delivery.
-
-## Android preview controls and build
-
-On Android, open the cloud action in the connection scanner to select the NWIA
-phone endpoint. The connection menu then opens NWIA controls for companion and
-MQTT state, encrypted broker settings and the phone public identity. Chats stay
-available when the companion is absent. Selecting this endpoint persists that
-choice for startup; the saved companion and MQTT connection are attempted again.
-
-The application ID remains the Android pilot's ID, and its existing Keystore
-alias and encrypted identity format are reused. Do not uninstall the pilot or
-clear app data to install a Flutter update. Check the APK signing certificate
-before any update and verify the same public identity afterward.
-
-Build with Flutter 3.47.9. For an FCM-enabled local build, place the matching
-Firebase Android configuration at `android/app/google-services.json`; it is
-excluded from Git. Builds without this file must keep ordinary BLE/MQTT usable
-and cannot request FCM registration until configured.
-
-Validation so far: all 1,548 Flutter tests passed, including five new local bridge
-and protected-channel-storage tests; the native core passed 127,719 deterministic
-checks. Format and strict analysis passed. The arm64 debug APK compiled with the
-local Firebase configuration. These are software/build results; Remaining Flutter routing checks are still pending. The phone retained the original encrypted identity
-unchanged across the update and opened Channels. A foreground FCM data push
-reached the Android handler and the user confirmed its visible notification;
-a background data push also reached the handler. The Wio completed its secured
-NWA1 handshake in Flutter; with phone MQTT disconnected, the user sent and
-received the named radio-only test through the Wio. These test alerts are not mesh
-message notifications: the authenticated relay/inbox is not deployed.
-
-Run native policy/crypto/framing checks with `cd android && ./gradlew :nwia-core:verifyCore`.
-Before installing a debug preview, run `python3 tools/verify_nwia_debug_apk.py build/app/outputs/flutter-apk/app-debug.apk`
-and verify that its signing certificate matches the existing installation.
-This checks the actual packaged Flutter runtime assets, not just Gradle success.
-The debug asset check is not applicable to AOT release APKs.
-
-The Android FCM service stores refreshed registration tokens in the protected
-vault and shows generic local alerts for data pushes in either app state.
-Remote notification bodies are ignored by that handler. It does not decrypt mesh
-traffic or send mesh keys to Firebase. Live notification delivery and the mesh
-packet-to-push relay remain separate acceptance checks.
-
-The keyless Wio overlay and its pinned build instructions are included under
-[`firmware/nwia-keyless`](../firmware/nwia-keyless/README.md). Imported component
-notices are recorded in [NWIA third-party components](nwia-third-party.md).
-
-## Flutter hardware acceptance recorded 2026-11-19
-
-On the commissioned Android phone, the user confirmed the corrected Flutter
-preview opened normally and displayed the foreground Firebase data-push alert.
-The background data push also reached the Android handler. The original encrypted
-identity file and public identity remained unchanged across the pilot update.
-Both Wio NWA1/secured BLE and TLS MQTT connected with the existing runtime settings.
-
-With phone MQTT disconnected, the user sent the named test from a separate
-MeshCore companion and received it in the Flutter app through the Wio. With Wio
-BLE disconnected and MQTT connected, the user received the internet-path test
-and sent an Android reply that arrived on the separate companion. These are
-physical reception and MQTT round-trip results, not a claim that every upstream
-feature or phone model is supported. Native delivery-policy races and packet
-compatibility are covered by the recorded deterministic checks.
-
-Generic FCM test alerts do not complete the mesh-message push feature. The
-packet-to-push relay, authenticated registration and encrypted offline inbox are
-still required before claiming background mesh-message delivery while the app
-is not maintaining MQTT.
+The relay installer initially restored password-file ownership from a copied
+backup rather than the original file metadata, causing a brief authentication
+outage. Ownership was corrected and Brewhaus/relay reconnection verified. The
+installer now records original UID/GID and checks file readability as the broker
+user before any reload. Existing gateway credentials and radio firmware were
+preserved. This is a development preview, not a claim that every upstream feature
+or Android model has been validated.

@@ -7690,4 +7690,34 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get nwia_mqttUnavailable => 'MQTT disconnected';
+
+  @override
+  String get nwia_relayUrl => 'Inbox HTTPS address';
+
+  @override
+  String get nwia_backgroundInbox => 'Background messages and offline inbox';
+
+  @override
+  String get nwia_inboxPrivacy =>
+      'The relay stores encrypted packets. Only this phone decrypts them. Firebase receives a generic wakeup notice.';
+
+  @override
+  String get nwia_inboxReady => 'Inbox registered';
+
+  @override
+  String get nwia_inboxNotReady =>
+      'Inbox not registered or sync needs attention';
+
+  @override
+  String nwia_pendingPackets(int count) {
+    return 'Encrypted packets awaiting chat import: $count';
+  }
+
+  @override
+  String nwia_expiredPackets(int count) {
+    return 'Older packets removed by retention/storage limits: $count';
+  }
+
+  @override
+  String get nwia_syncInbox => 'Save and sync inbox';
 }

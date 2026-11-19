@@ -38,6 +38,13 @@ class NwiaBridge {
       (await _methods.invokeMapMethod<String, dynamic>('profile'))!;
   Future<void> configure(Map<String, dynamic> values) =>
       _methods.invokeMethod('configure', values);
+  Future<List<Map<String, dynamic>>> inboxFrames() async =>
+      (await _methods.invokeListMethod<dynamic>(
+        'inboxFrames',
+      ))!.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  Future<void> inboxCommit(String id) =>
+      _methods.invokeMethod('inboxCommit', id);
+  Future<void> inboxSync() => _methods.invokeMethod('inboxSync');
   Future<String?> pushToken() => _methods.invokeMethod<String>('pushToken');
   Future<void> mqttConnect() => _methods.invokeMethod('mqttConnect');
   Future<void> mqttDisconnect() => _methods.invokeMethod('mqttDisconnect');

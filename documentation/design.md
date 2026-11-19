@@ -260,3 +260,9 @@ shown there. A blank password keeps the existing protected credential.
 The phone endpoint stays logically connected when its transports disappear,
 so chat history and the composer remain available for MQTT fallback. Transport
 availability is shown separately and never presented as recipient delivery.
+
+The background-inbox section in NWIA controls is an explicit opt-in. It displays
+the HTTPS address, registration/sync health, encrypted packets awaiting import
+and retention/overflow counts. It explains the phone/server/Firebase boundary
+without exposing keys or tokens. The screenshot in the integration guide uses
+fixture values from `nwia_inbox_screen_test.dart`, never a real configuration.

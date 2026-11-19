@@ -244,6 +244,8 @@ class MeshCoreConnector extends ChangeNotifier {
   StreamSubscription<Map<String, dynamic>>? _nwiaSubscription;
   final Map<String, String> _nwiaMessageIds = {};
   final Map<String, Map<String, dynamic>> _nwiaDeliveryStates = {};
+  Timer? _nwiaInboxTimer;
+  bool _nwiaInboxBusy = false;
   bool nwiaRadioReady = false;
   bool nwiaMqttReady = false;
   String nwiaStatus = "";
@@ -3527,9 +3529,97 @@ class MeshCoreConnector extends ChangeNotifier {
         throw StateError('NWIA identity unavailable');
       }
       await syncTime();
+      _nwiaInboxTimer?.cancel();
+      _nwiaInboxTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+        unawaited(_drainNwiaInbox());
+      });
     } catch (_) {
       await disconnect();
       rethrow;
+    }
+  }
+
+  Future<void> _drainNwiaInbox() async {
+    if (_nwiaInboxBusy ||
+        !isNwia ||
+        !isConnected ||
+        !_hasLoadedContacts ||
+        !_hasLoadedChannels ||
+        !_channelMapConfirmed ||
+        _isSyncingQueuedMessages) {
+      return;
+    }
+    _nwiaInboxBusy = true;
+    final generation = _messageHistoryGeneration;
+    final scope = _messageStore.publicKeyHex;
+    bool current() =>
+        isNwia &&
+        isConnected &&
+        generation == _messageHistoryGeneration &&
+        scope == _messageStore.publicKeyHex;
+    try {
+      for (final item in await nwia.inboxFrames()) {
+        if (!current()) break;
+        final frame = item['frame'] as Uint8List;
+        if (frame[0] == respCodeContactMsgRecvV3) {
+          final parsed = _parseContactMessage(frame);
+          if (parsed == null) continue;
+          await _loadMessagesForContact(parsed.senderKeyHex);
+          if (!current()) break;
+          final stored = await _messageStore.loadMessages(parsed.senderKeyHex);
+          if (!current()) break;
+          final all = [...stored, ...?_conversations[parsed.senderKeyHex]];
+          if (!all.any(
+            (m) =>
+                !m.isOutgoing &&
+                m.timestamp == parsed.timestamp &&
+                m.text == parsed.text,
+          )) {
+            await _handleIncomingMessage(frame, alreadyAdvancedQueueSync: true);
+          }
+          if (!current()) break;
+          await flushPendingWrites();
+          if (!current()) break;
+          await _messageStore.saveMessages(
+            parsed.senderKeyHex,
+            _conversations[parsed.senderKeyHex] ?? stored,
+          );
+        } else if (frame[0] == respCodeChannelMsgRecvV3) {
+          final parsed = ChannelMessage.fromFrame(frame);
+          if (parsed?.channelIndex == null) continue;
+          final slot = parsed!.channelIndex!;
+          final channelId = _slotChannelIds[slot];
+          if (channelId == null) continue;
+          final stored = await _channelMessageStore.loadChannelMessages(
+            channelId,
+          );
+          if (!current()) break;
+          final all = [...stored, ...?_channelMessages[slot]];
+          if (!all.any(
+            (m) =>
+                m.timestamp == parsed.timestamp &&
+                m.senderName == parsed.senderName &&
+                m.text == parsed.text,
+          )) {
+            await _handleIncomingChannelMessage(frame, advanceQueue: false);
+          }
+          if (!current()) break;
+          await flushPendingWrites();
+          if (!current()) break;
+          await _channelMessageStore.saveChannelMessages(
+            channelId,
+            _channelMessages[slot] ?? stored,
+          );
+        } else {
+          continue;
+        }
+        if (!current()) break;
+        await nwia.inboxCommit(item['id'] as String);
+      }
+    } catch (_) {
+      // Leave the protected ciphertext cached for retry if parsing/storage fails.
+    } finally {
+      _nwiaInboxBusy = false;
     }
   }
 
@@ -4522,6 +4612,8 @@ class MeshCoreConnector extends ChangeNotifier {
     await _usbManager.disconnect();
     await _tcpConnector.disconnect();
     if (transportAtDisconnect == MeshCoreTransportType.nwia) {
+      _nwiaInboxTimer?.cancel();
+      _nwiaInboxTimer = null;
       await _nwiaSubscription?.cancel();
       _nwiaSubscription = null;
       await nwia.close();
@@ -6859,7 +6951,7 @@ class MeshCoreConnector extends ChangeNotifier {
     _channelFramesAwaitingMap.clear();
     for (final frame in frames) {
       if (frame[0] != respCodeChannelDataRecv) {
-        _handleIncomingChannelMessage(frame);
+        unawaited(_handleIncomingChannelMessage(frame));
       } else if (_appSettingsService?.settings.imageMessagesEnabled ?? false) {
         _handleIncomingChannelData(frame);
       }
@@ -7199,7 +7291,7 @@ class MeshCoreConnector extends ChangeNotifier {
         break;
       case respCodeChannelMsgRecv:
       case respCodeChannelMsgRecvV3:
-        _handleIncomingChannelMessage(frame);
+        unawaited(_handleIncomingChannelMessage(frame));
         break;
       case respCodeChannelDataRecv:
         // RESP_CODE 27 (GRP_DATA received) is delivered through the firmware
@@ -8685,10 +8777,13 @@ class MeshCoreConnector extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _handleIncomingChannelMessage(Uint8List frame) async {
+  Future<void> _handleIncomingChannelMessage(
+    Uint8List frame, {
+    bool advanceQueue = true,
+  }) async {
     // If we're syncing the queued messages, advance the queue immediately
     // before any potentially long async work (like translation/notifications).
-    if (_isSyncingQueuedMessages) {
+    if (advanceQueue && _isSyncingQueuedMessages) {
       _handleQueuedMessageReceived();
     }
     final parsed = ChannelMessage.fromFrame(frame);
@@ -10227,6 +10322,7 @@ class MeshCoreConnector extends ChangeNotifier {
 
   @override
   void dispose() {
+    _nwiaInboxTimer?.cancel();
     _nwiaSubscription?.cancel();
     if (isNwia) unawaited(nwia.close());
     _messageFilterService?.removeListener(_onMessageFilterChanged);

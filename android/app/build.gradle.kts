@@ -36,6 +36,7 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.nwiamesh.app"
+        testInstrumentationRunner = "com.nwiamesh.app.InboxInstrumentation"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -137,4 +138,5 @@ dependencies {
  implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
  implementation(platform("com.google.firebase:firebase-bom:35.2.0"))
  implementation("com.google.firebase:firebase-messaging")
+ implementation("androidx.work:work-runtime:2.12.0")
 }
