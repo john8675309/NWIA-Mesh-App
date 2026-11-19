@@ -1,10 +1,12 @@
 # NWIA Mesh fork: keyless companion and MQTT
 
-Status: source fork and integration assessment,2026-11-19. The current Flutter
-application still uses the upstream stock-companion protocol. The NWIA phone-
-owned key model, keyless Wio protocol and MQTT fallback are **not integrated in
-this fork yet**. A separate Android pilot has passed the live tests below and
-is retained as the implementation/reference checkpoint.
+Status: Android integration in progress, 2026-11-19. The fork now contains a
+phone-local native endpoint, Keystore-backed identity/channel storage, NWA1
+keyless modem transport, TLS MQTT transport and companion-first delivery policy.
+The Flutter UI calls this endpoint; legacy companion frames terminate on the
+phone and are never forwarded into the Wio. The separate Android pilot remains
+the hardware-tested checkpoint. This Flutter build has not passed physical
+acceptance yet.
 
 Base inspected: upstream dev at34ea0cb7ca5142bdfc0a85e31fd91543f6392e78.
 Original MIT license and copyright remain intact. This is an independent fork;
@@ -18,9 +20,9 @@ local notifications, localization and Android/iOS platform runners. These are
 useful app foundations; they are not proof of phone-owned mesh keys or internet
 messaging without a radio.
 
-## Important differences from the NWIA requirements
+## Upstream boundaries identified before integration
 
-| Area | Current source | Required NWIA behavior |
+| Area | Upstream source before integration | Required NWIA behavior |
 | --- | --- | --- |
 | DM/channel sending | Connector builds stock companion commands with text and device-owned crypto | Phone constructs encrypted native packets; Wio transports opaque packets |
 | Identity | exportPrivateKey/importPrivateKey read/write the companion identity | Android-owned identity protected by Keystore; no private-key command to Wio |
@@ -113,8 +115,8 @@ stock MeshCore test companion passed:
 - MQTT-only encrypted DM and decrypted peer reply. That send did not process a
   matching native ACK; UI kept it unconfirmed. Multipart parsing is unit-tested,
   not asserted as the cause of the missing receipt.
--127,718 deterministic bounds/crypto/framing/transport checks. Not a claim that
-  this fork has run those tests or passed NWIA hardware acceptance yet.
+-127,719 deterministic bounds/crypto/framing/transport checks. The imported core now also passes these checks in this fork; Flutter hardware
+  acceptance is still pending.
 
 Before replacing the pilot, reproduce those tests through this Flutter UI,
 including key retention across app updates, no key/PSK BLE writes, no-radio MQTT
@@ -133,4 +135,52 @@ Native RF DM destinations are short hashes, not full public keys. A keyless rela
 cannot always identify one unique recipient; handle collisions with bounded
 candidate fanout or a separate authenticated app routing envelope. Do not turn
 the existing60-second non-retained RF transport into an unlimited offline queue.
-No FCM project, production signing key or push/inbox service is configured here.
+The local Android deployment is registered with Firebase. The FCM SDK, token
+bridge and generic wakeup-notification handler are integrated in Android. Firebase client configuration is
+ignored by Git. No push/inbox relay or production signing key is deployed; token
+availability alone is not working background message delivery.
+
+## Android preview controls and build
+
+On Android, open the cloud action in the connection scanner to select the NWIA
+phone endpoint. The connection menu then opens NWIA controls for companion and
+MQTT state, encrypted broker settings and the phone public identity. Chats stay
+available when the companion is absent. Selecting this endpoint persists that
+choice for startup; the saved companion and MQTT connection are attempted again.
+
+The application ID remains the Android pilot's ID, and its existing Keystore
+alias and encrypted identity format are reused. Do not uninstall the pilot or
+clear app data to install a Flutter update. Check the APK signing certificate
+before any update and verify the same public identity afterward.
+
+Build with Flutter 3.47.9. For an FCM-enabled local build, place the matching
+Firebase Android configuration at `android/app/google-services.json`; it is
+excluded from Git. Builds without this file must keep ordinary BLE/MQTT usable
+and cannot request FCM registration until configured.
+
+Validation so far: all 1,548 Flutter tests passed, including five new local bridge
+and protected-channel-storage tests; the native core passed 127,719 deterministic
+checks. Format and strict analysis passed. The arm64 debug APK compiled with the
+local Firebase configuration. These are software/build results; Remaining Flutter routing checks are still pending. The phone retained the original encrypted identity
+unchanged across the update and opened Channels. A foreground FCM data push
+reached the Android handler and the user confirmed its visible notification;
+a background data push also reached the handler. The Wio completed its secured
+NWA1 handshake in Flutter; with phone MQTT disconnected, the user sent and
+received the named radio-only test through the Wio. These test alerts are not mesh
+message notifications: the authenticated relay/inbox is not deployed.
+
+Run native policy/crypto/framing checks with `cd android && ./gradlew :nwia-core:verifyCore`.
+Before installing a debug preview, run `python3 tools/verify_nwia_debug_apk.py build/app/outputs/flutter-apk/app-debug.apk`
+and verify that its signing certificate matches the existing installation.
+This checks the actual packaged Flutter runtime assets, not just Gradle success.
+The debug asset check is not applicable to AOT release APKs.
+
+The Android FCM service stores refreshed registration tokens in the protected
+vault and shows generic local alerts for data pushes in either app state.
+Remote notification bodies are ignored by that handler. It does not decrypt mesh
+traffic or send mesh keys to Firebase. Live notification delivery and the mesh
+packet-to-push relay remain separate acceptance checks.
+
+The keyless Wio overlay and its pinned build instructions are included under
+[`firmware/nwia-keyless`](../firmware/nwia-keyless/README.md). Imported component
+notices are recorded in [NWIA third-party components](nwia-third-party.md).

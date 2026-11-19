@@ -5,6 +5,7 @@ import '../models/channel.dart';
 import '../utils/app_logger.dart';
 import 'legacy_key_migration.dart';
 import 'prefs_manager.dart';
+import '../nwia/nwia_bridge.dart';
 
 class ChannelStore {
   static const String _keyPrefix = 'channels';
@@ -15,19 +16,28 @@ class ChannelStore {
 
   String get keyFor => '$_keyPrefix$publicKeyHex';
 
+  bool get _isNwia =>
+      NwiaBridge.activeScope == publicKeyHex.toLowerCase() ||
+      PrefsManager.instance.getString('nwia_identity_scope') ==
+          publicKeyHex.toLowerCase();
+
   Future<List<Channel>> loadChannels() async {
     if (publicKeyHex.isEmpty) {
       appLogger.warn('Public key hex is not set. Cannot load channels.');
       return [];
     }
     final prefs = PrefsManager.instance;
-    String? jsonString = prefs.getString(keyFor);
+    final nwia = _isNwia;
+    String? jsonString = nwia
+        ? await NwiaBridge.readChannels(publicKeyHex)
+        : prefs.getString(keyFor);
     if ((jsonString == null || jsonString.isEmpty) &&
+        !nwia &&
         canMigrateLegacyKeys(publicKeyHex)) {
       jsonString = await migrateLegacyStringPreference(_keyPrefix, keyFor);
     }
 
-    if (jsonString == null || jsonString.isEmpty) {
+    if (!nwia && (jsonString == null || jsonString.isEmpty)) {
       jsonString = prefs.getString(keyFor);
     }
     if (jsonString == null || jsonString.isEmpty) {
@@ -38,7 +48,7 @@ class ChannelStore {
     try {
       jsonList = jsonDecode(jsonString) as List<dynamic>;
     } catch (e) {
-      appLogger.warn('Stored channels are unreadable: $e');
+      appLogger.warn('Stored channels are unreadable.');
       return [];
     }
     final channels = <Channel>[];
@@ -46,7 +56,7 @@ class ChannelStore {
       try {
         channels.add(_fromJson(entry as Map<String, dynamic>));
       } catch (e) {
-        appLogger.warn('Skipping malformed stored channel: $e');
+        appLogger.warn('Skipping malformed stored channel.');
       }
     }
     return channels;
@@ -59,7 +69,11 @@ class ChannelStore {
     }
     final prefs = PrefsManager.instance;
     final jsonList = channels.map(_toJson).toList();
-    await prefs.setString(keyFor, jsonEncode(jsonList));
+    if (_isNwia) {
+      await NwiaBridge.writeChannels(publicKeyHex, jsonEncode(jsonList));
+    } else {
+      await prefs.setString(keyFor, jsonEncode(jsonList));
+    }
   }
 
   String get _slotIdsKey => '$_slotIdsKeyPrefix$publicKeyHex';

@@ -248,3 +248,15 @@ The current code does not yet follow this page everywhere:
 - **Unknown placeholders.** Repeater and companion stats screens use `—`; `line_of_sight_map_screen.dart` uses `--`.
 - **Missing tooltip.** The Contacts FAB (`contacts_screen.dart`) has no tooltip; about 18 of 111 `IconButton`s have no tooltip nearby.
 - **Stale doc comments.** `SectionHeader` is described as "mono" but uses the sans `accentLabel`; the `StatusChip` comment sits above `meshContrastRatio`.
+
+## NWIA endpoint controls (Android preview)
+
+The NWIA connection screen uses a centered Material app bar, scrolling form,
+obscured broker password and explicit companion/MQTT text states. Open it from
+the scanner's cloud action or the connection menu while the phone endpoint is
+selected. The public identity is selectable; private identity material is never
+shown there. A blank password keeps the existing protected credential.
+
+The phone endpoint stays logically connected when its transports disappear,
+so chat history and the composer remain available for MQTT fallback. Transport
+availability is shown separately and never presented as recipient delivery.

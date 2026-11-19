@@ -4341,5 +4341,30 @@
   "chat_composerOffline": "Connect to a radio to send messages",
   "@chat_composerOffline": {
     "description": "Shown in place of the message box while no radio is connected"
-  }
+  },
+  "nwia_title": "NWIA Mesh",
+  "nwia_operationFailed": "Could not complete the operation. Check your settings and connection.",
+  "nwia_chooseCompanion": "Choose a keyless companion",
+  "nwia_noCompanion": "No companion found. Check its power and retry.",
+  "nwia_keyOwnership": "Your identity and channel keys stay on this phone. Companion first, MQTT fallback.",
+  "nwia_publicId": "Your public identity",
+  "nwia_disconnectCompanion": "Disconnect companion",
+  "nwia_findCompanion": "Find companion",
+  "nwia_disconnectMqtt": "Disconnect MQTT",
+  "nwia_connectMqtt": "Connect MQTT",
+  "nwia_name": "Your mesh name",
+  "nwia_host": "MQTT TLS hostname",
+  "nwia_port": "TLS port",
+  "nwia_group": "Broker group",
+  "nwia_user": "Dedicated app username",
+  "nwia_password": "Password (leave blank to keep current)",
+  "nwia_origin": "Assigned 12-hex transport origin",
+  "nwia_invalidValue": "Enter a valid value",
+  "nwia_save": "Save on phone",
+  "nwia_openChats": "Open chats",
+  "nwia_limits": "Requires NWIA keyless Wio firmware. No private key or channel key is provisioned to the radio. Unsupported radio commands fail locally. Push setup is separate.",
+  "nwia_radioReady": "Companion ready",
+  "nwia_radioUnavailable": "Companion unavailable",
+  "nwia_mqttReady": "MQTT connected",
+  "nwia_mqttUnavailable": "MQTT disconnected"
 }

@@ -5,6 +5,7 @@ import '../connector/meshcore_connector.dart';
 import '../helpers/snack_bar_builder.dart';
 import '../l10n/l10n.dart';
 import '../screens/scanner_screen.dart';
+import '../screens/nwia_screen.dart';
 import '../screens/usb_screen.dart';
 import '../storage/last_radio_store.dart';
 import '../utils/dialog_utils.dart';
@@ -149,6 +150,17 @@ PopupMenuItem<T> connectionMenuItem<T>(
 ) {
   final connector = screenContext.read<MeshCoreConnector>();
   final l10n = menuContext.l10n;
+  if (connector.isNwia) {
+    return PopupMenuItem<T>(
+      child: MeshMenuItemRow(
+        icon: Icons.cloud_outlined,
+        label: l10n.nwia_title,
+      ),
+      onTap: () => Navigator.of(
+        screenContext,
+      ).push(MaterialPageRoute(builder: (_) => const NwiaScreen())),
+    );
+  }
   if (connector.isConnected) {
     return PopupMenuItem<T>(
       child: MeshMenuItemRow(

@@ -282,3 +282,20 @@ Reactions use `r:<four-hex message hash>:<two-hex emoji index>`. Channel replies
 Transport-routed raw packets include four transport-code bytes before packed path metadata. For transport floods, the app matches the first two code bytes against locally known region candidates using HMAC-SHA256 over `[payloadType][payload]`. Region scope keys are the first 16 bytes of SHA256 of `#<region>`. The radio's default flood scope is also a candidate, matched on the key the radio reports (it may have been set by another client). The name itself is not carried as plain text. Unknown or ambiguous matches remain null; see [regions](regions.md).
 
 Image chunks use `CMD_SEND_CHANNEL_DATA` (62), `RESP_CODE_CHANNEL_DATA_RECV` (27), and application data type `0xAE1C`. The framing, capacities, metadata byte, and XOR recovery algorithm are defined in [image_chunk_transport.dart](../lib/services/image_chunk_transport.dart), which is the source of truth. See [image messages](image-messages.md) for user requirements and limitations.
+
+## NWIA Android keyless endpoint
+
+In NWIA mode the stock frames described above are phone-internal model/API
+frames. They terminate at Android `NwiaEndpoint`; they are **not** BLE writes.
+The Wio only receives the NWA1 modem protocol: two-byte big-endian body length,
+one-byte opcode, four-byte big-endian request ID and opaque packet body.
+HELLO=1 carries `NWA1`, CAPS=0x81 returns `NWA1` plus version 1;
+TRANSMIT=2 carries one encrypted native MeshCore packet; TX_RESULT=0x82 reports
+0=failed, 1=transmitted, 2=busy; RECEIVE=0x83 carries a native packet.
+
+The transport serializes 20-byte GATT chunks over NUS. Message keys, identity
+private keys, MQTT credentials and plaintext text commands never enter that
+transport. Legacy command 2 and key import/export are rejected by the local
+endpoint. Direct text uses the phone platform API with the full recipient
+public key; its crypto and fallback state belong to the native endpoint.
+A TX result or MQTT write is not a recipient ACK. See [NWIA integration](nwia-integration.md).

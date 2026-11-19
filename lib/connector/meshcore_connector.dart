@@ -10,6 +10,8 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_blue_plus_platform_interface/flutter_blue_plus_platform_interface.dart';
 
 import '../utils/advert_signature.dart';
+import '../nwia/nwia_bridge.dart';
+import '../storage/prefs_manager.dart';
 import '../models/channel.dart';
 import '../models/channel_message.dart';
 import '../models/bookmarked_message.dart';
@@ -159,7 +161,7 @@ enum MeshCoreConnectionState {
   disconnecting,
 }
 
-enum MeshCoreTransportType { bluetooth, usb, tcp, review }
+enum MeshCoreTransportType { bluetooth, usb, tcp, review, nwia }
 
 /// Thrown by [MeshCoreConnector.sendFrame] when no radio is connected.
 class RadioNotConnectedException implements Exception {
@@ -238,6 +240,14 @@ class MeshCoreConnector extends ChangeNotifier {
   StreamSubscription<Uint8List>? _usbFrameSubscription;
   final MeshCoreTcpConnector _tcpConnector = MeshCoreTcpConnector();
   MeshCoreTransportType _activeTransport = MeshCoreTransportType.bluetooth;
+  final NwiaBridge nwia = NwiaBridge();
+  StreamSubscription<Map<String, dynamic>>? _nwiaSubscription;
+  final Map<String, String> _nwiaMessageIds = {};
+  final Map<String, Map<String, dynamic>> _nwiaDeliveryStates = {};
+  bool nwiaRadioReady = false;
+  bool nwiaMqttReady = false;
+  String nwiaStatus = "";
+  bool get isNwia => _activeTransport == MeshCoreTransportType.nwia;
   ReviewRadio? _reviewRadio;
   StreamSubscription<Uint8List>? _reviewFrameSubscription;
   int _reviewConnectGeneration = 0;
@@ -3478,6 +3488,75 @@ class MeshCoreConnector extends ChangeNotifier {
     }
   }
 
+  Future<void> connectNwia() async {
+    await _awaitActiveDisconnect();
+    if (isConnected) await disconnect();
+    await stopScan();
+    _cancelReconnectTimer();
+    _manualDisconnect = false;
+    _resetConnectionHandshakeState();
+    _activeTransport = MeshCoreTransportType.nwia;
+    _setState(MeshCoreConnectionState.connecting);
+    try {
+      await _nwiaSubscription?.cancel();
+      _nwiaSubscription = nwia.events.listen((event) {
+        switch (event['kind']) {
+          case 'frame':
+            _handleFrame(event['frame'] as Uint8List);
+          case 'delivery':
+            _handleNwiaDelivery(event);
+          case 'status':
+            nwiaStatus = event['text'] as String? ?? '';
+            nwiaRadioReady = event['radioReady'] == true;
+            nwiaMqttReady = event['mqttReady'] == true;
+            notifyListeners();
+        }
+      });
+      await nwia.open();
+      await PrefsManager.instance.setBool('nwia_enabled', true);
+      await PrefsManager.instance.setString(
+        'nwia_identity_scope',
+        NwiaBridge.activeScope!,
+      );
+      _setState(MeshCoreConnectionState.connected);
+      _pendingInitialChannelSync = true;
+      _pendingInitialQueuedMessageSync = true;
+      _pendingInitialContactsSync = true;
+      await _requestDeviceInfo();
+      if (!await _waitForSelfInfo(timeout: const Duration(seconds: 5))) {
+        throw StateError('NWIA identity unavailable');
+      }
+      await syncTime();
+    } catch (_) {
+      await disconnect();
+      rethrow;
+    }
+  }
+
+  void _handleNwiaDelivery(Map<String, dynamic> event) {
+    final id = event['id'] as String;
+    _nwiaDeliveryStates[id] = event;
+    final messageId = _nwiaMessageIds[id];
+    if (messageId == null) return;
+    final state = event['state'];
+    final status = switch (state) {
+      'DELIVERED' => MessageStatus.delivered,
+      'FAILED' => MessageStatus.failed,
+      'RADIO_WAITING_ACK' ||
+      'RADIO_TRANSMITTED' ||
+      'MQTT_SENT' => MessageStatus.sent,
+      _ => MessageStatus.pending,
+    };
+    for (final entry in _conversations.entries) {
+      final index = entry.value.indexWhere((m) => m.messageId == messageId);
+      if (index < 0) continue;
+      entry.value[index] = entry.value[index].copyWith(status: status);
+      unawaited(_messageStore.saveMessages(entry.key, entry.value));
+      notifyListeners();
+      return;
+    }
+  }
+
   @visibleForTesting
   ReviewRadio Function()? reviewRadioFactoryForTest;
 
@@ -4407,6 +4486,7 @@ class MeshCoreConnector extends ChangeNotifier {
       MeshCoreTransportType.usb => 'USB',
       MeshCoreTransportType.tcp => 'TCP',
       MeshCoreTransportType.review => 'Review',
+      MeshCoreTransportType.nwia => 'NWIA',
     };
 
     _appDebugLogService?.info(
@@ -4441,6 +4521,13 @@ class MeshCoreConnector extends ChangeNotifier {
     _usbFrameSubscription = null;
     await _usbManager.disconnect();
     await _tcpConnector.disconnect();
+    if (transportAtDisconnect == MeshCoreTransportType.nwia) {
+      await _nwiaSubscription?.cancel();
+      _nwiaSubscription = null;
+      await nwia.close();
+      _nwiaMessageIds.clear();
+      _nwiaDeliveryStates.clear();
+    }
     final wasReviewMode = transportAtDisconnect == MeshCoreTransportType.review;
     _reviewConnectGeneration++;
     _tcpConnectGeneration++;
@@ -4545,7 +4632,7 @@ class MeshCoreConnector extends ChangeNotifier {
     if (!isConnected) {
       throw const RadioNotConnectedException();
     }
-    _bleDebugLogService?.logFrame(data, outgoing: true);
+    if (!isNwia) _bleDebugLogService?.logFrame(data, outgoing: true);
 
     final pendingAck = _pendingGenericAckQueue.track(
       data,
@@ -4555,7 +4642,9 @@ class MeshCoreConnector extends ChangeNotifier {
     );
 
     try {
-      if (_activeTransport == MeshCoreTransportType.usb) {
+      if (isNwia) {
+        await nwia.frame(data);
+      } else if (_activeTransport == MeshCoreTransportType.usb) {
         await _usbManager.write(data);
         // Brief pause so the device firmware can process each frame before the
         // next arrives. Without this, rapid-fire frames over USB can cause the
@@ -4610,6 +4699,7 @@ class MeshCoreConnector extends ChangeNotifier {
   }
 
   Future<void> requestBatteryStatus({bool force = false}) async {
+    if (isNwia) return;
     if (!isConnected) return;
     if (_batteryRequested && !force) return;
     _batteryRequested = true;
@@ -5130,6 +5220,25 @@ class MeshCoreConnector extends ChangeNotifier {
         'sendMessage: dropping overlong message '
         '(${outboundBytes.length} > $maxTextPayloadBytes bytes)',
       );
+      return;
+    }
+
+    if (isNwia) {
+      final result = await nwia.sendDm(
+        contact.publicKeyHex,
+        text,
+        DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      );
+      final id = result['id'] as String;
+      final message = Message.outgoing(
+        contact.publicKey,
+        text,
+      ).copyWith(expectedAckHash: (result['ackHash'] as num?)?.toInt());
+      _nwiaMessageIds[id] = message.messageId;
+      _addMessage(contact.publicKeyHex, message);
+      final state = _nwiaDeliveryStates[id];
+      if (state != null) _handleNwiaDelivery(state);
+      notifyListeners();
       return;
     }
 
@@ -6962,7 +7071,7 @@ class MeshCoreConnector extends ChangeNotifier {
 
     final frame = Uint8List.fromList(data);
     _receivedFramesController.add(frame);
-    _bleDebugLogService?.logFrame(frame, outgoing: false);
+    if (!isNwia) _bleDebugLogService?.logFrame(frame, outgoing: false);
 
     final code = frame[0];
     // debugPrint('RX frame: code=$code len=${frame.length}');
@@ -10118,6 +10227,8 @@ class MeshCoreConnector extends ChangeNotifier {
 
   @override
   void dispose() {
+    _nwiaSubscription?.cancel();
+    if (isNwia) unawaited(nwia.close());
     _messageFilterService?.removeListener(_onMessageFilterChanged);
     _disposed = true;
     _appSettingsService?.removeListener(_onAppSettingsChanged);

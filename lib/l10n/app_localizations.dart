@@ -12633,6 +12633,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect to a radio to send messages'**
   String get chat_composerOffline;
+
+  /// No description provided for @nwia_title.
+  ///
+  /// In en, this message translates to:
+  /// **'NWIA Mesh'**
+  String get nwia_title;
+
+  /// No description provided for @nwia_operationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not complete the operation. Check your settings and connection.'**
+  String get nwia_operationFailed;
+
+  /// No description provided for @nwia_chooseCompanion.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a keyless companion'**
+  String get nwia_chooseCompanion;
+
+  /// No description provided for @nwia_noCompanion.
+  ///
+  /// In en, this message translates to:
+  /// **'No companion found. Check its power and retry.'**
+  String get nwia_noCompanion;
+
+  /// No description provided for @nwia_keyOwnership.
+  ///
+  /// In en, this message translates to:
+  /// **'Your identity and channel keys stay on this phone. Companion first, MQTT fallback.'**
+  String get nwia_keyOwnership;
+
+  /// No description provided for @nwia_publicId.
+  ///
+  /// In en, this message translates to:
+  /// **'Your public identity'**
+  String get nwia_publicId;
+
+  /// No description provided for @nwia_disconnectCompanion.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect companion'**
+  String get nwia_disconnectCompanion;
+
+  /// No description provided for @nwia_findCompanion.
+  ///
+  /// In en, this message translates to:
+  /// **'Find companion'**
+  String get nwia_findCompanion;
+
+  /// No description provided for @nwia_disconnectMqtt.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect MQTT'**
+  String get nwia_disconnectMqtt;
+
+  /// No description provided for @nwia_connectMqtt.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect MQTT'**
+  String get nwia_connectMqtt;
+
+  /// No description provided for @nwia_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Your mesh name'**
+  String get nwia_name;
+
+  /// No description provided for @nwia_host.
+  ///
+  /// In en, this message translates to:
+  /// **'MQTT TLS hostname'**
+  String get nwia_host;
+
+  /// No description provided for @nwia_port.
+  ///
+  /// In en, this message translates to:
+  /// **'TLS port'**
+  String get nwia_port;
+
+  /// No description provided for @nwia_group.
+  ///
+  /// In en, this message translates to:
+  /// **'Broker group'**
+  String get nwia_group;
+
+  /// No description provided for @nwia_user.
+  ///
+  /// In en, this message translates to:
+  /// **'Dedicated app username'**
+  String get nwia_user;
+
+  /// No description provided for @nwia_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password (leave blank to keep current)'**
+  String get nwia_password;
+
+  /// No description provided for @nwia_origin.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned 12-hex transport origin'**
+  String get nwia_origin;
+
+  /// No description provided for @nwia_invalidValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid value'**
+  String get nwia_invalidValue;
+
+  /// No description provided for @nwia_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save on phone'**
+  String get nwia_save;
+
+  /// No description provided for @nwia_openChats.
+  ///
+  /// In en, this message translates to:
+  /// **'Open chats'**
+  String get nwia_openChats;
+
+  /// No description provided for @nwia_limits.
+  ///
+  /// In en, this message translates to:
+  /// **'Requires NWIA keyless Wio firmware. No private key or channel key is provisioned to the radio. Unsupported radio commands fail locally. Push setup is separate.'**
+  String get nwia_limits;
+
+  /// No description provided for @nwia_radioReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Companion ready'**
+  String get nwia_radioReady;
+
+  /// No description provided for @nwia_radioUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Companion unavailable'**
+  String get nwia_radioUnavailable;
+
+  /// No description provided for @nwia_mqttReady.
+  ///
+  /// In en, this message translates to:
+  /// **'MQTT connected'**
+  String get nwia_mqttReady;
+
+  /// No description provided for @nwia_mqttUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'MQTT disconnected'**
+  String get nwia_mqttUnavailable;
 }
 
 class _AppLocalizationsDelegate

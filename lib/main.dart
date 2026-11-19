@@ -207,7 +207,16 @@ void main() async {
     settings: appSettingsService,
   );
 
-  await connector.restoreLastRadio();
+  if (PlatformInfo.isAndroid &&
+      PrefsManager.instance.getBool('nwia_enabled') == true) {
+    try {
+      await connector.connectNwia();
+    } catch (_) {
+      await connector.restoreLastRadio();
+    }
+  } else {
+    await connector.restoreLastRadio();
+  }
 
   runApp(
     MeshCoreApp(

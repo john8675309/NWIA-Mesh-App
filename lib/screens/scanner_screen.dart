@@ -19,6 +19,7 @@ import '../helpers/snack_bar_builder.dart';
 import '../review_mode/review_mode_entry.dart';
 import '../utils/main_navigation.dart';
 import 'tcp_screen.dart';
+import 'nwia_screen.dart';
 import 'usb_screen.dart';
 
 /// Screen for scanning and connecting to MeshCore devices
@@ -119,6 +120,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
         centerTitle: true,
         automaticallyImplyLeading: false,
         actions: [
+          if (PlatformInfo.isAndroid)
+            IconButton(
+              icon: const Icon(Icons.cloud_outlined),
+              tooltip: context.l10n.nwia_title,
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const NwiaScreen())),
+            ),
           if (PlatformInfo.supportsUsbSerial)
             IconButton(
               icon: const Icon(Icons.usb),

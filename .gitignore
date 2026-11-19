@@ -94,3 +94,9 @@ keystore.properties
 
 # Claude Code local working dir (worktrees, jobs, settings)
 .claude/
+
+# Local Firebase deployment configuration
+android/app/google-services.json
+
+# Optional companion build dependency checkout
+/meshcore-radio/

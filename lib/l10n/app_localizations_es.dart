@@ -7573,4 +7573,83 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get chat_composerOffline =>
       'Conéctate a una radio para enviar mensajes';
+
+  @override
+  String get nwia_title => 'NWIA Mesh';
+
+  @override
+  String get nwia_operationFailed =>
+      'Could not complete the operation. Check your settings and connection.';
+
+  @override
+  String get nwia_chooseCompanion => 'Choose a keyless companion';
+
+  @override
+  String get nwia_noCompanion =>
+      'No companion found. Check its power and retry.';
+
+  @override
+  String get nwia_keyOwnership =>
+      'Your identity and channel keys stay on this phone. Companion first, MQTT fallback.';
+
+  @override
+  String get nwia_publicId => 'Your public identity';
+
+  @override
+  String get nwia_disconnectCompanion => 'Disconnect companion';
+
+  @override
+  String get nwia_findCompanion => 'Find companion';
+
+  @override
+  String get nwia_disconnectMqtt => 'Disconnect MQTT';
+
+  @override
+  String get nwia_connectMqtt => 'Connect MQTT';
+
+  @override
+  String get nwia_name => 'Your mesh name';
+
+  @override
+  String get nwia_host => 'MQTT TLS hostname';
+
+  @override
+  String get nwia_port => 'TLS port';
+
+  @override
+  String get nwia_group => 'Broker group';
+
+  @override
+  String get nwia_user => 'Dedicated app username';
+
+  @override
+  String get nwia_password => 'Password (leave blank to keep current)';
+
+  @override
+  String get nwia_origin => 'Assigned 12-hex transport origin';
+
+  @override
+  String get nwia_invalidValue => 'Enter a valid value';
+
+  @override
+  String get nwia_save => 'Save on phone';
+
+  @override
+  String get nwia_openChats => 'Open chats';
+
+  @override
+  String get nwia_limits =>
+      'Requires NWIA keyless Wio firmware. No private key or channel key is provisioned to the radio. Unsupported radio commands fail locally. Push setup is separate.';
+
+  @override
+  String get nwia_radioReady => 'Companion ready';
+
+  @override
+  String get nwia_radioUnavailable => 'Companion unavailable';
+
+  @override
+  String get nwia_mqttReady => 'MQTT connected';
+
+  @override
+  String get nwia_mqttUnavailable => 'MQTT disconnected';
 }

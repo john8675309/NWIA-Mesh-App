@@ -1,10 +1,12 @@
-> **NWIA Mesh fork — work in progress**
+> **NWIA Mesh fork — Android integration preview**
 >
-> This fork is the proposed Flutter foundation for NWIA Mesh. The current code
-> still uses the upstream stock-companion/key ownership model. NWIA phone-owned
-> keys, keyless Wio transport and MQTT fallback are not integrated here yet.
-> See the [NWIA integration assessment](documentation/nwia-integration.md).
-> The separate tested Android pilot remains installed and unchanged.
+> Android now includes a phone-owned key endpoint, keyless Wio BLE transport and
+> companion-first encrypted MQTT fallback. This Flutter integration is undergoing
+> build and hardware acceptance; it is not a production release. The separate
+> tested Android pilot remains the hardware checkpoint. The mesh-message push relay is pending.
+> See the [NWIA integration guide](documentation/nwia-integration.md) for setup,
+> key ownership, validation and current limitations. The upstream downloads below
+> are MeshCore Open builds and do not contain these NWIA changes.
 
 # MeshCore Open
 

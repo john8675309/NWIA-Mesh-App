@@ -12,6 +12,7 @@ import io.flutter.embedding.engine.FlutterEngine
 // already draws behind the system bars and handles insets in Flutter.
 class MainActivity : FlutterFragmentActivity() {
     private val usbFunctions by lazy { MeshcoreUsbFunctions(this) }
+    private var nwia: NwiaBridge? = null
     private var scrollCapture: FlutterScrollCapture? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,6 +23,7 @@ class MainActivity : FlutterFragmentActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         usbFunctions.configureFlutterEngine(flutterEngine)
+        nwia = NwiaBridge(this, flutterEngine)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             scrollCapture?.detach()
             scrollCapture = FlutterScrollCapture(
@@ -34,6 +36,8 @@ class MainActivity : FlutterFragmentActivity() {
     override fun onDestroy() {
         scrollCapture?.detach()
         scrollCapture = null
+        nwia?.dispose()
+        nwia = null
         usbFunctions.dispose()
         super.onDestroy()
     }
